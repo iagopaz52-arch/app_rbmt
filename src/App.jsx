@@ -172,7 +172,7 @@ function App() {
       <header className="relative border-b border-[#dbe3df] pb-7 sm:pb-12">
         <div className="max-w-full break-words font-mono text-[10px] font-medium uppercase tracking-[.1em] text-[#2b756a] sm:text-[11px] sm:tracking-[.12em]">RBMT · Revista Brasileira de Medicina do Trabalho</div>
         <h1 className="mt-4 max-w-[700px] text-4xl font-bold leading-[1.05] tracking-[-.04em] sm:text-[clamp(38px,5vw,68px)] sm:leading-[1.02]">Projeto de APP - Leitura de Artigos</h1>
-        <p className="max-w-prose text-sm leading-relaxed text-[#6b7b75] sm:text-base">Conteúdo da edição atual, coletado diretamente do portal da RBMT.</p>
+        <p className="max-w-prose text-sm leading-relaxed text-[#6b7b75] sm:text-base mt-3">Conteúdo da edição atual, coletado diretamente do portal da RBMT.</p>
         <div className="mt-4 flex flex-wrap items-center gap-4 sm:absolute sm:right-0 sm:top-2 sm:mt-0 sm:justify-end">
           <button className="inline-flex min-h-11 items-center border border-[#2b756a] px-3 py-2 font-mono text-[11px] font-medium uppercase tracking-[.05em] text-[#2b756a] hover:bg-[#c7ebe0]" onClick={installApp}>＋ Adicionar à tela inicial</button>
           <a className="inline-block min-h-11 py-3 font-mono text-[11px] font-medium uppercase tracking-[.05em] text-[#2b756a]" href={SITE_URL} target="_blank" rel="noreferrer">Visitar rbmt.org.br ↗</a>
@@ -181,7 +181,7 @@ function App() {
 
       {installMessage && <div className="my-4 bg-[#e9f5f0] px-4 py-3 text-sm text-[#2b756a]" role="status">{installMessage}</div>}
       {error && <div className="my-5 bg-[#ffe8e5] px-5 py-3.5 text-[#9b3e35]" role="alert">{error}</div>}
-      {loading ? <div className="py-[70px] text-[#6b7b75]">Consultando a edição atual…</div> : (
+      {loading ? <div className="py-[70px] text-[#6b7b75]">Consultando edição atual…</div> : (
         <section className="min-h-[640px]">
           <button
             className="my-5 inline-flex min-h-11 items-center gap-3 border border-[#2b756a] bg-transparent px-4 py-2 font-mono text-xs font-medium uppercase tracking-[.05em] text-[#2b756a] transition-colors hover:bg-[#c7ebe0]"
