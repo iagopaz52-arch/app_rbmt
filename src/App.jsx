@@ -28,7 +28,11 @@ function abstractSections(value) {
 function parseIssue(html) {
   const document = new DOMParser().parseFromString(html, 'text/html')
   const title = textOf(document.querySelector('.page-title')) || 'Edição atual'
-  const articles = [...document.querySelectorAll('h5 a[href*="/details/"]')].map((heading) => {
+  const articleLinks = [...document.querySelectorAll('h5 a[href*="/details/"]')]
+  const links = articleLinks.length
+    ? articleLinks
+    : [...document.querySelectorAll('a[href*="/details/"]')]
+  const articles = links.map((heading) => {
     const card = heading.closest('.col-lg-12') || heading.parentElement?.parentElement
     const detailUrl = absoluteUrl(heading.getAttribute('href'))
     const pdf = card?.querySelector('a[href*="/export-pdf/"]')?.getAttribute('href')

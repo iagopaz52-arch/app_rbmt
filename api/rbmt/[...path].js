@@ -6,9 +6,15 @@ export default async function handler(request, response) {
     return response.status(405).json({ error: 'Method not allowed' })
   }
 
+  const requestPath = new URL(
+    request.url,
+    `https://${request.headers.host || 'localhost'}`,
+  ).pathname
   const pathParts = Array.isArray(request.query.path)
     ? request.query.path
-    : [request.query.path].filter(Boolean)
+    : request.query.path
+      ? [request.query.path]
+      : requestPath.replace(/^\/api\/rbmt\/?/, '').split('/').filter(Boolean)
   const upstreamPath = `/${pathParts.map((part) => encodeURIComponent(part)).join('/')}`
   const requestUrl = new URL(request.url, `https://${request.headers.host || 'localhost'}`)
   const upstreamUrl = `${UPSTREAM_ORIGIN}${upstreamPath}${requestUrl.search}`
