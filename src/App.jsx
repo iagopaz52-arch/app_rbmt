@@ -60,6 +60,17 @@ function parseArticle(html, article) {
   body?.querySelectorAll('.nav-tabs, script, style')?.forEach((element) => element.remove())
   document.querySelector('#header-article h1.small')?.remove()
   const content = body.querySelector('.row > .col-lg-12') || body
+  const introduction = [...content.children].find((element) =>
+    element.tagName === 'P' && /^INTRODUÇÃO\b/i.test(textOf(element)),
+  )
+  if (introduction) {
+    let previous = content.firstElementChild
+    while (previous && previous !== introduction) {
+      const next = previous.nextElementSibling
+      previous.remove()
+      previous = next
+    }
+  }
   const images = [...content.querySelectorAll('img')].map((image) => {
     const src = absoluteUrl(
       image.getAttribute('src') || image.getAttribute('data-src'),
@@ -73,9 +84,7 @@ function parseArticle(html, article) {
     }
   })
   const contentHtml = content.innerHTML
-  const text = /INTRODUÇÃO|INTRODUCTION/i.test(contentHtml)
-    ? contentHtml
-    : body.innerHTML
+  const text = contentHtml || body.innerHTML
   if (!text.trim()) throw new Error('O texto completo do artigo está vazio.')
   const pdf = [...document.querySelectorAll('a[href*="/export-pdf/"]')][0]?.getAttribute('href')
   return {
