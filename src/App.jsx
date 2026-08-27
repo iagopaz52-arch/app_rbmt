@@ -37,12 +37,12 @@ function parseIssue(html) {
     const detailUrl = absoluteUrl(heading.getAttribute('href'))
     const pdf = card?.querySelector('a[href*="/export-pdf/"]')?.getAttribute('href')
     const authors = textOf(card?.querySelector('.news-meta-date'))?.split('Rev Bras Med Trab.')[0].trim()
-    const abstract = card?.querySelector('.section-abstract')
+    const abstract = textOf(card?.querySelector('.section-abstract'))
     return {
       id: detailUrl,
       title: textOf(heading),
       authors: authors?.replace(/\s*;\s*/g, ', ') || 'Autores não informados',
-      abstract: textOf(abstract),
+      abstract,
       detailUrl,
       pdfUrl: absoluteUrl(pdf),
     }
@@ -60,9 +60,17 @@ function parseArticle(html, article) {
   body?.querySelectorAll('.nav-tabs, script, style')?.forEach((element) => element.remove())
   document.querySelector('#header-article h1.small')?.remove()
   const content = body.querySelector('.row > .col-lg-12') || body
-  const introduction = [...content.children].find((element) =>
-    element.tagName === 'P' && /^INTRODUÇÃO\b/i.test(textOf(element)),
-  )
+  const children = [...content.children]
+  const introduction = children.find((element) => /^INTRODUÇÃO\b/i.test(textOf(element)))
+  const englishAbstract = children.find((element) => /^ABSTRACT\b/i.test(textOf(element)))
+  if (englishAbstract) {
+    let current = englishAbstract
+    while (current && current !== introduction) {
+      const next = current.nextElementSibling
+      current.remove()
+      current = next
+    }
+  }
   if (introduction) {
     let previous = content.firstElementChild
     while (previous && previous !== introduction) {
@@ -211,7 +219,7 @@ function App() {
                   <a className="inline-flex min-h-11 items-center justify-center bg-[#182522] px-[18px] py-[13px] font-mono text-xs font-medium uppercase text-white no-underline" href={selected.pdfUrl} target="_blank" rel="noreferrer">Baixar PDF <span className="ml-2.5 text-[#c7ebe0]">↗</span></a>
                   <a className="inline-flex min-h-11 items-center font-mono text-[11px] font-medium uppercase tracking-[.05em] text-[#2b756a]" href={selected.detailUrl} target="_blank" rel="noreferrer">Abrir no portal</a>
                 </div>
-                {selected.abstract && <section className="mb-7 rounded-r-lg border-l-4 border-[#2b756a] bg-[#e9f5f0] p-4 sm:p-5 [&_p]:mt-3">
+                {selected.abstract && <section className="mb-7 rounded-r-lg border-l-4 border-[#2b756a] bg-[#e9f5f0] p-4 sm:p-5">
                   <h3 className="mb-3 font-mono text-xs font-semibold uppercase tracking-[.12em] text-[#2b756a]">Resumo</h3>
                   <div className="space-y-3">
                     {abstractSections(selected.abstract).map((section) => (
