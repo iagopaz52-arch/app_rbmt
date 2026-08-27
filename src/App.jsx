@@ -83,7 +83,10 @@ function parseArticle(html, article) {
 }
 
 async function fetchSource(path) {
-  const response = await fetch(`/api/rbmt${path}`)
+  const endpoint = path.startsWith('/details/')
+    ? `/api/rbmt?path=${encodeURIComponent(path)}`
+    : `/api/rbmt${path}`
+  const response = await fetch(endpoint)
   if (!response.ok) throw new Error(`Não foi possível acessar a fonte (${response.status}).`)
   return response.text()
 }

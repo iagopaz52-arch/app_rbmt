@@ -15,7 +15,8 @@ export default async function handler(request, response) {
     ? requestPath.split('/').filter(Boolean)
     : (Array.isArray(request.query.path)
       ? request.query.path
-      : [request.query.path].filter(Boolean))
+      : [request.query.path].filter(Boolean)
+    ).flatMap((part) => part.split('/').filter(Boolean))
   let upstreamPath
   try {
     upstreamPath = `/${pathParts.map((part) => encodeURIComponent(decodeURIComponent(part))).join('/')}`
