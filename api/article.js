@@ -6,7 +6,10 @@ export default async function handler(request, response) {
     return response.status(405).json({ error: 'Method not allowed' })
   }
 
-  const source = typeof request.query.url === 'string' ? request.query.url : ''
+  const source = request.query.url
+  if (typeof source !== 'string') {
+    return response.status(400).json({ error: 'Article URL is required' })
+  }
   let articleUrl
   try {
     articleUrl = new URL(source)

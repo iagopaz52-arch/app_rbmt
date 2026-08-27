@@ -60,25 +60,9 @@ function parseArticle(html, article) {
   body?.querySelectorAll('.nav-tabs, script, style')?.forEach((element) => element.remove())
   document.querySelector('#header-article h1.small')?.remove()
   const content = body.querySelector('.row > .col-lg-12') || body
-  const children = [...content.children]
-  const introduction = children.find((element) => /^INTRODUÇÃO\b/i.test(textOf(element)))
-  const englishAbstract = children.find((element) => /^ABSTRACT\b/i.test(textOf(element)))
-  if (englishAbstract) {
-    let current = englishAbstract
-    while (current && current !== introduction) {
-      const next = current.nextElementSibling
-      current.remove()
-      current = next
-    }
-  }
-  if (introduction) {
-    let previous = content.firstElementChild
-    while (previous && previous !== introduction) {
-      const next = previous.nextElementSibling
-      previous.remove()
-      previous = next
-    }
-  }
+  const introduction = [...content.querySelectorAll('p')].find((element) =>
+    /^INTRODUÇÃO\s*:?\s*$/i.test(textOf(element)),
+  )
   const images = [...content.querySelectorAll('img')].map((image) => {
     const src = absoluteUrl(
       image.getAttribute('src') || image.getAttribute('data-src'),
@@ -91,14 +75,20 @@ function parseArticle(html, article) {
       alt: image.getAttribute('alt') || '',
     }
   })
-  const contentHtml = content.innerHTML
-  const text = contentHtml || body.innerHTML
-  if (!text.trim()) throw new Error('O texto completo do artigo está vazio.')
+  const contentRange = document.createRange()
+  contentRange.selectNodeContents(content)
+  if (introduction) contentRange.setStartBefore(introduction)
+  const contentHtml = document.createElement('div')
+  contentHtml.append(contentRange.cloneContents())
+  contentHtml.querySelectorAll('.nav-tabs, script, style').forEach((element) => element.remove())
+  const text = contentHtml.innerHTML
+  const articleText = text || body.innerHTML
+  if (!articleText.trim()) throw new Error('O texto completo do artigo está vazio.')
   const pdf = [...document.querySelectorAll('a[href*="/export-pdf/"]')][0]?.getAttribute('href')
   return {
     ...article,
     authors: authors || article.authors,
-    contentHtml: text,
+    contentHtml: articleText,
     images,
     pdfUrl: absoluteUrl(pdf) || article.pdfUrl,
   }
@@ -166,14 +156,20 @@ function App() {
     setArticleLoading(true)
     setError('')
     try {
-      const html = await fetch(`/api/article?url=${encodeURIComponent(article.detailUrl)}`, {
+      const response = await fetch(`/api/article?url=${encodeURIComponent(article.detailUrl)}`, {
         cache: 'no-store',
       })
-        .then((response) => {
-          if (!response.ok) throw new Error(`Não foi possível acessar o artigo (${response.status}).`)
-          return response.text()
-        })
-      setSelected(parseArticle(html, article))
+      if (!response.ok) {
+        const detail = await response.text()
+        throw new Error(`Não foi possível acessar o artigo (${response.status}): ${detail}`)
+      }
+      const html = await response.text()
+      try {
+        setSelected(parseArticle(html, article))
+      } catch (reason) {
+        const fallback = await fetchSource(new URL(article.detailUrl).pathname)
+        setSelected(parseArticle(fallback, article))
+      }
     } catch (reason) {
       setError(reason.message)
     } finally {
@@ -275,7 +271,15 @@ function App() {
           </aside>
         </div>
       )}
-      <footer className="border-t border-[#dbe3df] pt-5 font-mono text-[11px] text-[#6b7b75]">Dados públicos coletados de <a className="text-[#2b756a]" href={SITE_URL} target="_blank" rel="noreferrer">rbmt.org.br</a>.</footer>
+      <footer className="border-t border-[#dbe3df] pt-5 font-mono text-[11px] text-[#6b7b75]">
+        <button
+          className="mb-5 inline-flex min-h-11 items-center border border-[#2b756a] px-3 py-2 font-mono text-[11px] font-medium uppercase tracking-[.05em] text-[#2b756a] hover:bg-[#c7ebe0]"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        >
+          ↑ Voltar ao topo
+        </button>
+        <div>Dados públicos coletados de <a className="text-[#2b756a]" href={SITE_URL} target="_blank" rel="noreferrer">rbmt.org.br</a>.</div>
+      </footer>
       {lightbox && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-[#182522]/90 p-4 sm:p-10"
