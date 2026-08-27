@@ -56,28 +56,9 @@ function parseArticle(html, article) {
     .map((meta) => meta.content)
     .join(', ')
   const body = document.querySelector('#body-article')
-  body?.querySelector('.nav-tabs')?.remove()
+  if (!body) throw new Error('O conteúdo completo do artigo não foi encontrado.')
+  body?.querySelectorAll('.nav-tabs, script, style')?.forEach((element) => element.remove())
   document.querySelector('#header-article h1.small')?.remove()
-  const content = body?.querySelector('.row > .col-lg-12') || body
-  const englishAbstract = [...(content?.querySelectorAll('p') || [])].find((paragraph) =>
-    /^ABSTRACT\b/i.test(textOf(paragraph)),
-  )
-  if (englishAbstract) {
-    let current = englishAbstract
-    while (current) {
-      const next = current.nextElementSibling
-      const isPortugueseIntroduction = /^INTRODUÇÃO\b/i.test(textOf(current))
-      if (isPortugueseIntroduction) break
-      current.remove()
-      current = next
-    }
-  }
-  const introduction = [...(content?.querySelectorAll('p') || [])].find((paragraph) =>
-    /^INTRODUÇÃO\b/i.test(textOf(paragraph)),
-  )
-  if (introduction) {
-    while (introduction.previousElementSibling) introduction.previousElementSibling.remove()
-  }
   const images = [...(body?.querySelectorAll('img') || [])].map((image) => {
     const src = absoluteUrl(
       image.getAttribute('src') || image.getAttribute('data-src'),
@@ -90,7 +71,7 @@ function parseArticle(html, article) {
       alt: image.getAttribute('alt') || '',
     }
   })
-  const text = content?.innerHTML || ''
+  const text = body?.innerHTML || ''
   const pdf = [...document.querySelectorAll('a[href*="/export-pdf/"]')][0]?.getAttribute('href')
   return {
     ...article,
