@@ -11,12 +11,17 @@ export default async function handler(request, response) {
     `https://${request.headers.host || 'localhost'}`,
   )
   const requestPath = requestUrl.pathname.replace(/^\/api\/rbmt\/?/, '')
-  const upstreamPath = requestPath
-    ? `/${requestPath}`
-    : `/${(Array.isArray(request.query.path)
+  const pathParts = requestPath
+    ? requestPath.split('/').filter(Boolean)
+    : (Array.isArray(request.query.path)
       ? request.query.path
-      : [request.query.path].filter(Boolean)
-    ).map((part) => encodeURIComponent(part)).join('/')}`
+      : [request.query.path].filter(Boolean))
+  let upstreamPath
+  try {
+    upstreamPath = `/${pathParts.map((part) => encodeURIComponent(decodeURIComponent(part))).join('/')}`
+  } catch (error) {
+    return response.status(400).json({ error: 'Invalid article path' })
+  }
   const upstreamUrl = `${UPSTREAM_ORIGIN}${upstreamPath}${requestUrl.search}`
 
   let upstreamResponse
