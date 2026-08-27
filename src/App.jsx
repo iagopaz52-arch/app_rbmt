@@ -59,7 +59,8 @@ function parseArticle(html, article) {
   if (!body) throw new Error('O conteúdo completo do artigo não foi encontrado.')
   body?.querySelectorAll('.nav-tabs, script, style')?.forEach((element) => element.remove())
   document.querySelector('#header-article h1.small')?.remove()
-  const images = [...(body?.querySelectorAll('img') || [])].map((image) => {
+  const content = body.querySelector('.row > .col-lg-12') || body
+  const images = [...content.querySelectorAll('img')].map((image) => {
     const src = absoluteUrl(
       image.getAttribute('src') || image.getAttribute('data-src'),
     )
@@ -71,7 +72,11 @@ function parseArticle(html, article) {
       alt: image.getAttribute('alt') || '',
     }
   })
-  const text = body?.innerHTML || ''
+  const contentHtml = content.innerHTML
+  const text = /INTRODUÇÃO|INTRODUCTION/i.test(contentHtml)
+    ? contentHtml
+    : body.innerHTML
+  if (!text.trim()) throw new Error('O texto completo do artigo está vazio.')
   const pdf = [...document.querySelectorAll('a[href*="/export-pdf/"]')][0]?.getAttribute('href')
   return {
     ...article,
@@ -83,9 +88,7 @@ function parseArticle(html, article) {
 }
 
 async function fetchSource(path) {
-  const endpoint = path.startsWith('/details/')
-    ? `/api/rbmt?path=${encodeURIComponent(path)}`
-    : `/api/rbmt${path}`
+  const endpoint = `/api/rbmt${path}`
   const response = await fetch(endpoint)
   if (!response.ok) throw new Error(`Não foi possível acessar a fonte (${response.status}).`)
   return response.text()
@@ -146,7 +149,13 @@ function App() {
     setArticleLoading(true)
     setError('')
     try {
-      const html = await fetchSource(new URL(article.detailUrl).pathname)
+      const html = await fetch(`/api/article?url=${encodeURIComponent(article.detailUrl)}`, {
+        cache: 'no-store',
+      })
+        .then((response) => {
+          if (!response.ok) throw new Error(`Não foi possível acessar o artigo (${response.status}).`)
+          return response.text()
+        })
       setSelected(parseArticle(html, article))
     } catch (reason) {
       setError(reason.message)
