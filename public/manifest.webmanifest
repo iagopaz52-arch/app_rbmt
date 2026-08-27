@@ -1,0 +1,17 @@
+{
+  "name": "RBMT - Revista Brasileira de Medicina do Trabalho",
+  "short_name": "RBMT",
+  "description": "Edição atual da Revista Brasileira de Medicina do Trabalho",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f8f5",
+  "theme_color": "#182522",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

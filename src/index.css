@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+html { background: #f5f8f5; }
+body { min-width: 320px; }
+button, a { -webkit-tap-highlight-color: transparent; }
